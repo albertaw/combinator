@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Combinator</string>
+    <string name="text_error">Error</string>
+    <string name="text_empty_string_warning">Fields must not be empty</string>
+    <string name="text_feedback_instructions">Guess the combination</string>
+    <string name="text_submit">Submit</string>
+    <string name="text_guesses_left">Guesses left:</string>
+    <string name="text_start_game">Start Game</string>
+    <string name="text_score">Score:</string>
 </resources>
