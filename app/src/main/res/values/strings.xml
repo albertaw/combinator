@@ -7,4 +7,5 @@
     <string name="text_guesses_left">Guesses left:</string>
     <string name="text_start_game">Start Game</string>
     <string name="text_score">Score:</string>
+    <string name="text_empty_name_error">Name cannot be empty</string>
 </resources>

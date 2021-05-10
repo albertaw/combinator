@@ -1,14 +1,6 @@
 package com.example.combinator;
 
-import android.util.Log;
-
-import java.util.ArrayList;
-
 public class Game extends Subject {
-    private State idleState;
-    private State playingState;
-    private State winningState;
-    private State currentState;
     private Player player;
     private Combo currentCombo;
     private int numGuessesLeft;
@@ -20,34 +12,19 @@ public class Game extends Subject {
         numGuessesLeft = 10;
         numRounds = 1;
         player = new Player();
-        idleState = new IdleState();
-        playingState = new PlayingState();
-        winningState = new WinningState();
-        currentState = idleState;
-    }
-
-    public void init() {
-        currentState.init(this);
     }
 
     public void update() {
         numGuessesLeft -= 1;
         if (hasWon()) {
             state = "win";
-//            numGuessesLeft = 10;
-//            numRounds += 1;
             int currentScore = numGuessesLeft * 10 + 10;
             player.setCurrentScore(currentScore);
             player.setScore(currentScore + player.getScore());
-//            player.setGuesses(new ArrayList<>());
+            feedback = "correct";
             notifyObserver();
         } else if (numGuessesLeft == 0) {
             state = "game over";
-//            numGuessesLeft = 10;
-//            numRounds = 1;
-//            player.setScore(0);
-//            player.setCurrentScore(0);
-//            player.setGuesses(new ArrayList<>());
             notifyObserver();
         } else if (currentCombo.compareTo(player.getCurrentGuess()) == 0){
             feedback = "You guessed a number in the correct position";
@@ -57,28 +34,13 @@ public class Game extends Subject {
             feedback = "Incorrect guess";
         }
     }
-//    public void update() {
-//        currentState.update(this);
-//    }
 
-//    public State getState() {
-//        return currentState;
-//    }
-//
-    public void setState(State state) {
-        currentState = state;
+    public String getState() {
+        return state;
     }
 
-    public State getIdleState() {
-        return idleState;
-    }
-
-    public State getPlayingState() {
-        return playingState;
-    }
-
-    public State getWinningState() {
-        return winningState;
+    public void setState(String state) {
+        this.state = state;
     }
 
     public Player getPlayer() {
@@ -126,9 +88,5 @@ public class Game extends Subject {
 
     public void setFeedback(String feedback) {
         this.feedback = feedback;
-    }
-
-    public String getState() {
-        return state;
     }
 }

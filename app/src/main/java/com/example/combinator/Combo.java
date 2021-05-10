@@ -39,8 +39,10 @@ public class Combo {
         int result = -1;
 
         for (int i = 0; i < 4; i++) {
+            //correct position
             if (digits.get(i) == combo.getCombo().get(i)) {
                 return 0;
+                //correct number
             } else if (digits.contains(combo.getCombo().get(i))) {
                 result = 1;
             }

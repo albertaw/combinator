@@ -29,16 +29,21 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView digit3TextView;
     private TextView digit4TextView;
     private Button submit;
-    private ComboViewModel model;
+    private ComboViewModel comboViewModel;
     private List<Guess> guesses;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
+    private String name;
+    private AppDatabase db;
+    private HighScoreDao highScoreDao;
     private String TAG = "GameActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        name = getIntent().getStringExtra("name");
 
         game = new Game();
         game.registerObserver(this);
@@ -59,7 +64,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL));
         submit = findViewById(R.id.submit_button);
         submit.setOnClickListener(this);
-        model = new ViewModelProvider(this).get(ComboViewModel.class);
+        comboViewModel = new ViewModelProvider(this).get(ComboViewModel.class);
+        db = AppDatabase.getInstance(this);
+        highScoreDao = db.highScoreDao();
         startGame();
     }
 
@@ -73,9 +80,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-//            case R.id.start_button:
-//                startGame();
-//                break;
             case R.id.submit_button:
                 submitGuess();
                 break;
@@ -83,7 +87,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startGame() {
-        model.getCombo().observe(this, result -> {
+        guesses.clear();
+        adapter.notifyDataSetChanged();
+        comboViewModel.getCombo().observe(this, result -> {
             Log.i(TAG, result);
             String[] integers = result.split("\n");
             Combo combo = new Combo();
@@ -128,8 +134,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void update() {
-        //if state is winning then give option to continue playing
+
+        HighScore highScore = new HighScore(name, game.getPlayer().getScore());
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
+
         if (game.getState().equals("win")) {
             builder.setTitle("You win!")
                     .setMessage("Points earned: " + game.getPlayer().getCurrentScore() + "\nWould you like to play again?")
@@ -143,20 +151,25 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             guessesLeft.setText(String.valueOf(game.getNumGuessesLeft()));
                             score.setText(String.valueOf(game.getPlayer().getScore()));
                             clearInput();
-                            model.loadCombo();
+                            comboViewModel.loadCombo();
                             startGame();
                         }
                     })
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            //save score to database
-                            Intent intent = new Intent(GameActivity.this, MainActivity.class);
+                            //highScoreViewModel.insert(highScore);
+                            AppDatabase.databaseWriteExecutor.execute(() -> {
+                                highScoreDao.insert(highScore);
+                            });
+                            Intent intent = new Intent(GameActivity.this, HighScoreActivity.class);
                             startActivity(intent);
                         }
                     });
         } else {
-            //save score to database
+            AppDatabase.databaseWriteExecutor.execute(() -> {
+                highScoreDao.insert(highScore);
+            });
             builder.setTitle("You lose")
                     .setMessage("Total score: " + game.getPlayer().getScore() + "\nWould you like to play again?")
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -167,14 +180,14 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             guessesLeft.setText(String.valueOf(game.getNumGuessesLeft()));
                             score.setText(String.valueOf(game.getPlayer().getScore()));
                             clearInput();
-                            model.loadCombo();
+                            comboViewModel.loadCombo();
                             startGame();
                         }
                     })
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(GameActivity.this, MainActivity.class);
+                            Intent intent = new Intent(GameActivity.this, HighScoreActivity.class);
                             startActivity(intent);
                         }
                     });
