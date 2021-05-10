@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +30,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView digit2TextView;
     private TextView digit3TextView;
     private TextView digit4TextView;
-    private Button submit;
+    private Button submitButton;
+    private Button showAnswerButton;
     private ComboViewModel comboViewModel;
     private List<Guess> guesses;
     private RecyclerView recyclerView;
@@ -43,7 +46,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        name = getIntent().getStringExtra("name");
+        SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.shared_preference_key), Context.MODE_PRIVATE);
+        name = sharedPreferences.getString("name", "anonymous");
 
         game = new Game();
         game.registerObserver(this);
@@ -62,12 +66,22 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new GuessAdapter(guesses);
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL));
-        submit = findViewById(R.id.submit_button);
-        submit.setOnClickListener(this);
+
+        submitButton = findViewById(R.id.submit_button);
+        submitButton.setOnClickListener(this);
+
+        showAnswerButton = findViewById(R.id.show_answer_button);
+        showAnswerButton.setOnClickListener(this);
         comboViewModel = new ViewModelProvider(this).get(ComboViewModel.class);
         db = AppDatabase.getInstance(this);
         highScoreDao = db.highScoreDao();
         startGame();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        game.unregisterObserver(this);
     }
 
     private void clearInput() {
@@ -82,6 +96,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.submit_button:
                 submitGuess();
+                break;
+            case R.id.show_answer_button:
+                showAnswer();
                 break;
         }
     }
@@ -130,6 +147,14 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             adapter.notifyItemInserted(guesses.size()-1);
             recyclerView.scrollToPosition(guesses.size()-1);
         }
+    }
+
+    private void showAnswer() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
+        builder.setTitle("Answer")
+                .setMessage(game.getCurrentCombo().toString());
+        Dialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override

@@ -4,7 +4,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -25,19 +27,26 @@ public class MainActivity extends AppCompatActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (nameEditText.getText().toString().equals("")) {
+                String name = nameEditText.getText().toString();
+                if (name.equals("")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle(R.string.text_error)
                             .setMessage(R.string.text_empty_name_error);
                     Dialog dialog = builder.create();
                     dialog.show();
                 } else {
+                    storeName(name);
                     Intent intent = new Intent(MainActivity.this, GameActivity.class);
-                    String name = nameEditText.getText().toString();
-                    intent.putExtra("name", name);
                     startActivity(intent);
                 }
             }
         });
+    }
+
+    private void storeName(String name) {
+        SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.shared_preference_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("name", name);
+        editor.apply();
     }
 }
