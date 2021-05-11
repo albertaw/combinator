@@ -2,6 +2,7 @@
 
 ## Getting Started
 
+The APK file is located in the app/release folder.
 You can play the game on an emulator or your device.
 First download [Android Studio](https://developer.android.com/studio).
 Open this project in Android Studio. To use the emulator go to tools->AVD Manager.
